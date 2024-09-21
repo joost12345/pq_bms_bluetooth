@@ -1,7 +1,11 @@
-# pq_bms_bluetooth
+# PowerQueen LiFePO4 BMS Bluetooth
 Python library for PowerQueen LiFePO4 batteries with BMS Bluetooth connection.
 
-The code does not make any changes or change any settings in BMS of battery. Only reading information.
+> [!NOTE]  
+> The code does not make any changes or change any settings in BMS of battery. Only reading information.
+
+> [!WARNING]  
+> **This is unofficial PowerQueen library. Use at your own risc.**  
 
 ## Installation
 
