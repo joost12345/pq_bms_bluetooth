@@ -56,7 +56,7 @@ class Request:
           Parse and print bleak serivces and characteristics
         '''
         for service in services:
-            self.logger.info(service)
+            print(service)
             for charc in service.characteristics:
                 print(f"\tcharacteristic: ${charc}")
                 try:

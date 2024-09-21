@@ -1,5 +1,5 @@
 # pq_bms_bluetooth
-Python library for PowerQueen BMS Bluetooth connection.
+Python library for PowerQueen LiFePO4 batteries with BMS Bluetooth connection.
 
 The code does not make any changes or change any settings in BMS of battery. Only reading information.
 
@@ -38,7 +38,7 @@ Start bluetooth tool `bluetoothctl` and scan for avaliable bluetooth devices `sc
 
 Run
 ```
-python main.py DEVICE_MAC
+python main.py DEVICE_MAC --bms
 ```
 
 
@@ -50,4 +50,4 @@ Software:
 - Raspberry Pi OS Debian 12 (bookworm) (kernel 6.6+)
 
 Hardware:
-- Power Queen LiFePO4 12В 100А
+- Power Queen LiFePO4 12V 100A
