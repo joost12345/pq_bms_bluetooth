@@ -1,5 +1,6 @@
 # PowerQueen LiFePO4 BMS Bluetooth
 Python library for PowerQueen LiFePO4 batteries with BMS Bluetooth connection.
+Main purpose is to read battery stats from BMS.
 
 > [!NOTE]  
 > The code does not make any changes or change any settings in BMS of battery. Only reading information.
@@ -27,10 +28,17 @@ pip install -r requirements.txt
 ## Usage
 
 Find Bluetooth MAC address of your battery.
-On linux it possible to do with `bluez` tool.
+On linux it is possible to do with `bluez` tool.
 
-Start bluetooth tool `bluetoothctl` and scan for avaliable bluetooth devices `scan on`.
+```
+sudo apt install bluez
+```
+
+Start bluetooth tool `bluetoothctl` and scan for available bluetooth devices `scan on`.
 <br>Once it find some devices and shows the list, stop scanning with command `scan off`
+
+> [!NOTE]  
+> There is no need to *Trust*, *Pair* or *Connect* to battery via `bluez`. Just find MAC address of battery.
 
 <span style="color:blue">[bluetooth]</span># scan on
 <br>Discovery started
@@ -45,7 +53,7 @@ Start bluetooth tool `bluetoothctl` and scan for avaliable bluetooth devices `sc
 
 ```
 # python main.py --help
-usage: main.py [-h] [--bms] [-s] [--verbose] DEVICE_MAC
+usage: main.py [-h] [--bms] [--pair] [-s] [--verbose] DEVICE_MAC
 
 positional arguments:
   DEVICE_MAC      Bluetooth device MAC address in format 12:34:56:78:AA:CC
@@ -53,7 +61,8 @@ positional arguments:
 options:
   -h, --help      show this help message and exit
   --bms           Get battery BMS info
-  -s, --services  List device GATT services
+  --pair          Pair with device before interacting
+  -s, --services  List device GATT services and characteristics
   --verbose       Verbose logs
 ```
 
@@ -91,6 +100,11 @@ Get BMS information
 }
 ```
 
+<br><br>
+List device GATT services and characteristics
+```
+# python main.py 12:34:56:78:AA:CC --services
+```
 
 ## Tested on
 

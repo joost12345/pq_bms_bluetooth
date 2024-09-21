@@ -5,8 +5,9 @@ from bleak import BleakClient, BleakGATTCharacteristic
 
 
 class Request:
-    def __init__(self, bluetooth_device_mac: str, logger=None):
+    def __init__(self, bluetooth_device_mac: str, pair_device=False, logger=None):
         self.bluetooth_device_mac = bluetooth_device_mac
+        self.pair = pair_device
         self.callback_func = None
         self.bluetooth_timeout = 2
 
@@ -27,6 +28,9 @@ class Request:
         '''
         self.logger.info("Connecting to %s...", self.bluetooth_device_mac)
         async with BleakClient(self.bluetooth_device_mac, timeout=self.bluetooth_timeout) as client:
+            if self.pair:
+                self.logger.info("Paring %s...", self.bluetooth_device_mac)
+                await client.pair()
 
             for commandStr, parser in commands_parsers.items():
                 command = self._create_command(commandStr)
@@ -41,6 +45,8 @@ class Request:
                 await client.stop_notify(characteristic_id)
 
         self.logger.info("Disconnecting %s...", self.bluetooth_device_mac)
+        if self.pair:
+            client.unpair()
         await client.disconnect()
         self.logger.info("Disconnected %s", self.bluetooth_device_mac)
 
@@ -50,9 +56,14 @@ class Request:
           Print bluetooth device serivces and characteristics
         '''
         async with BleakClient(self.bluetooth_device_mac, timeout=self.bluetooth_timeout) as client:
+            if self.pair:
+                self.logger.info("Paring %s...", self.bluetooth_device_mac)
+                await client.pair()
             await self.parse_services(client, client.services)
 
         self.logger.info("Disconnecting %s...", self.bluetooth_device_mac)
+        if self.pair:
+            await client.unpair()
         await client.disconnect()
         self.logger.info("Disconnected %s", self.bluetooth_device_mac)
 

@@ -21,7 +21,7 @@ class BatteryInfo:
         'SERIAL_NUMBER'    : '00 00 04 01 10 55 AA 14'
     }
 
-    def __init__(self, bluetooth_device_mac: str, logger=None):
+    def __init__(self, bluetooth_device_mac: str, pair_device: bool=False, logger=None):
         self.packVoltage = None
         self.voltage = None
         self.batteryPack: dict = {}
@@ -49,7 +49,11 @@ class BatteryInfo:
         else:
             self._logger = logging.getLogger(__name__)
 
-        self._request = Request(bluetooth_device_mac, logger=self._logger)
+        self._request = Request(
+            bluetooth_device_mac,
+            pair_device=pair_device,
+            logger=self._logger
+        )
 
     def get_request(self):
         '''
