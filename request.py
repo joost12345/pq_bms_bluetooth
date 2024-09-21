@@ -8,6 +8,7 @@ class Request:
     def __init__(self, bluetooth_device_mac: str, logger=None):
         self.bluetooth_device_mac = bluetooth_device_mac
         self.callback_func = None
+        self.bluetooth_timeout = 2
 
         if logger:
             self.logger = logger
@@ -18,29 +19,29 @@ class Request:
         '''
           Send single command to device
         '''
-        await self.bulk_send(characteristic_id, commandsParsers= { command: callback_func })
+        await self.bulk_send(characteristic_id, commands_parsers={ command: callback_func })
 
-    async def bulk_send(self, characteristic_id: str, commandsParsers: dict) -> None:
+    async def bulk_send(self, characteristic_id: str, commands_parsers: dict) -> None:
         '''
           Bulk send commands to device
         '''
-        self.logger.info(f"Connecting to {self.bluetooth_device_mac}...")
-        async with BleakClient(self.bluetooth_device_mac) as client:
+        self.logger.info("Connecting to %s...", self.bluetooth_device_mac)
+        async with BleakClient(self.bluetooth_device_mac, timeout=self.bluetooth_timeout) as client:
 
-            for commandStr, parser in commandsParsers.items():
+            for commandStr, parser in commands_parsers.items():
                 command = self._create_command(commandStr)
                 self.callback_func = parser
 
                 await client.start_notify(characteristic_id, self._data_callback)
-                self.logger.info(f"Sending command: {command}")
+                self.logger.info("Sending command: %s", command)
                 result = await client.write_gatt_char(characteristic_id, data=command, response=True)
                 await asyncio.sleep(1.0)
 
-                self.logger.info(f"Raw result: {result}")
+                self.logger.info("Raw result: %s", result)
                 await client.stop_notify(characteristic_id)
 
         await client.disconnect()
-        self.logger.info(f"Disconnected {self.bluetooth_device_mac}")
+        self.logger.info("Disconnected %s", self.bluetooth_device_mac)
 
 
     async def print_services(self):
@@ -78,5 +79,5 @@ class Request:
         return message_bytes
 
     async def _data_callback(self, sender: BleakGATTCharacteristic, data: bytearray):
-        self.logger.info(f"Callback: {sender}: \n Raw data: {data}")
+        self.logger.info("Callback: %s \n Raw data: %s", sender, data)
         self.callback_func(data)

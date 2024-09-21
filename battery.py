@@ -41,7 +41,7 @@ class BatteryInfo:
         self.dischargesAHCount = None
 
         self.firmwareVersion = None
-        self.manfuctureDate = None
+        self.manfactureDate = None
         self.hardwareVersion = None
 
         if logger:
@@ -63,7 +63,7 @@ class BatteryInfo:
         '''
         asyncio.run(self._request.bulk_send(
             characteristic_id = self.BMS_CHARACTERISTIC_ID,
-            commandsParsers = {
+            commands_parsers = {
                 self.pq_commands["GET_VERSION"]: self.parse_version,
                 self.pq_commands["GET_BATTERY_INFO"]: self.parse_battery_info,
                 ## Internal SN not used or not implemented
@@ -92,7 +92,7 @@ class BatteryInfo:
         self.packVoltage = int.from_bytes(data[8:12][::-1], byteorder='big')
         self.voltage = int.from_bytes(data[12:16][::-1], byteorder='big')
 
-        cell = 0
+        cell = 1
         batPack = data[16:48]
         for key, dt in enumerate(batPack):
             if not dt or key % 2:
@@ -143,7 +143,7 @@ class BatteryInfo:
         '''
         start = data[8:]
         self.firmwareVersion = f"{int.from_bytes(start[0:2][::-1], byteorder='big')}.{int.from_bytes(start[2:4][::-1], byteorder='big')}.{int.from_bytes(start[4:6][::-1], byteorder='big')}"
-        self.manfuctureDate = f"{int.from_bytes(start[6:8][::-1], byteorder='big')}-{int(start[8])}-{int(start[9])}"
+        self.manfactureDate = f"{int.from_bytes(start[6:8][::-1], byteorder='big')}-{int(start[8])}-{int(start[9])}"
 
         vers = ""
         #rawV = data[0:8]
