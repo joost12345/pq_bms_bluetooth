@@ -40,6 +40,7 @@ class Request:
                 self.logger.info("Raw result: %s", result)
                 await client.stop_notify(characteristic_id)
 
+        self.logger.info("Disconnecting %s...", self.bluetooth_device_mac)
         await client.disconnect()
         self.logger.info("Disconnected %s", self.bluetooth_device_mac)
 
@@ -48,8 +49,12 @@ class Request:
         '''
           Print bluetooth device serivces and characteristics
         '''
-        async with BleakClient(self.bluetooth_device_mac) as client:
+        async with BleakClient(self.bluetooth_device_mac, timeout=self.bluetooth_timeout) as client:
             await self.parse_services(client, client.services)
+
+        self.logger.info("Disconnecting %s...", self.bluetooth_device_mac)
+        await client.disconnect()
+        self.logger.info("Disconnected %s", self.bluetooth_device_mac)
 
     async def parse_services(self, client, services):
         '''

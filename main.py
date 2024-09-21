@@ -30,7 +30,7 @@ def main():
         logger.setLevel(logging.DEBUG)
         logger.addHandler(handler)
 
-    battery = BatteryInfo(deviceMac, logger)
+    battery = BatteryInfo(args.DEVICE_MAC, logger)
 
     if args.services:
         request = battery.get_request()
