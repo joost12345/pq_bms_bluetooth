@@ -48,6 +48,7 @@ class BatteryInfo:
         self.battery_status = None
         self.balance_status = None
         self.cell_status = None
+        self.bms_status = None
         self.heat_status = None
 
         if logger:
@@ -161,7 +162,17 @@ class BatteryInfo:
         else:
             self.cell_status = "Battery is in optimal working condition."
 
-        # TODO: Search for heat metric
+        # To fix: Search for bms_status metric
+        # if self.failureState[2] > 0:
+        #     self.bms_status = "⚠Warning! BMS failure."
+        # else:
+        #     if self.protectState:
+        #         self.bms_status = "Protection mode is on."
+        #     else:
+        #         self.bms_status = "BMS is running smoothly."
+
+
+        # To fix: Search for heat metric
         # if self.heat:
         #     self.heat_status = "Self-heating is on"
         # else:
@@ -173,13 +184,17 @@ class BatteryInfo:
           Parse firmware version from bytearray
         '''
         start = data[8:]
-        self.firmwareVersion = f"{int.from_bytes(start[0:2][::-1], byteorder='big')}.{int.from_bytes(start[2:4][::-1], byteorder='big')}.{int.from_bytes(start[4:6][::-1], byteorder='big')}"
-        self.manfactureDate = f"{int.from_bytes(start[6:8][::-1], byteorder='big')}-{int(start[8])}-{int(start[9])}"
+        self.firmwareVersion = (f"{int.from_bytes(start[0:2][::-1], byteorder='big')}"
+                                f".{int.from_bytes(start[2:4][::-1], byteorder='big')}"
+                                f".{int.from_bytes(start[4:6][::-1], byteorder='big')}")
+        self.manfactureDate = (f"{int.from_bytes(start[6:8][::-1], byteorder='big')}"
+                               f"-{int(start[8])}"
+                               f"-{int(start[9])}")
 
         vers = ""
         #rawV = data[0:8]
         for ver in start[0::2]:
-            if ver >= 32 and ver <= 126:
+            if 32 <= ver <= 126:
                 vers += chr(ver)
 
         self.hardwareVersion = vers
@@ -195,6 +210,7 @@ class BatteryInfo:
         '''
           Return human readable battery status
         '''
+        status = ''
         if self.current == 0:
             status = "Standby"
         elif self.current > 0:
