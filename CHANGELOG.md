@@ -4,7 +4,7 @@
 - Added human readable battery status variables: `battery_status`, `balance_status`, `cell_status`, `cell_status`
 
 ### Changed
-- Variables `heat`, `protectState`, `failureState`, `batteryState` changed to type list
+- Variables `heat`, `protectState`, `failureState` changed to type list
 
 ### Fixed
 - Minor typo fixes
