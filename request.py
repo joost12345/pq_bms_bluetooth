@@ -29,7 +29,7 @@ class Request:
         self.logger.info("Connecting to %s...", self.bluetooth_device_mac)
         async with BleakClient(self.bluetooth_device_mac, timeout=self.bluetooth_timeout) as client:
             if self.pair:
-                self.logger.info("Paring %s...", self.bluetooth_device_mac)
+                self.logger.info("Pairing %s...", self.bluetooth_device_mac)
                 await client.pair()
 
             for commandStr, parser in commands_parsers.items():
@@ -57,7 +57,7 @@ class Request:
         '''
         async with BleakClient(self.bluetooth_device_mac, timeout=self.bluetooth_timeout) as client:
             if self.pair:
-                self.logger.info("Paring %s...", self.bluetooth_device_mac)
+                self.logger.info("Pairing %s...", self.bluetooth_device_mac)
                 await client.pair()
             await self.parse_services(client, client.services)
 
