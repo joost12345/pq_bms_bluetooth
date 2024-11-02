@@ -1,4 +1,4 @@
-## [0.1.2] - 2024.10.23
+## [0.1.2] - 2024.11.02
 
 ### Added
 - Added calculated signed `watt` variable
