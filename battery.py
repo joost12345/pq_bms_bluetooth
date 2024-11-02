@@ -26,7 +26,8 @@ class BatteryInfo:
         self.voltage = None
         self.batteryPack: dict = {}
         self.current = None
-        self.remianAh = None
+        self.watt = None
+        self.remainAh = None
         self.factoryAh = None
         self.cellTemperature = None
         self.mosfetTemperature = None
@@ -116,11 +117,15 @@ class BatteryInfo:
             cell += 1
 
         ## Load \ Unload current A
-        self.current = int.from_bytes(data[48:52][::-1], byteorder='big')
+        current = int.from_bytes(data[48:52][::-1], byteorder='big', signed=True)
+        self.current = round(current / 1000, 2)
+
+        ## Calculated load \ unload Watt
+        self.watt = round((self.voltage * +current) / 10000, 1) / 100
 
         ## Remain Ah
-        remianAh = int.from_bytes(data[62:64][::-1], byteorder='big')
-        self.remianAh = round(remianAh/100, 2)
+        remainAh = int.from_bytes(data[62:64][::-1], byteorder='big')
+        self.remainAh = round(remainAh/100, 2)
 
         ## Factory Ah
         fccAh = int.from_bytes(data[64:66][::-1], byteorder='big')

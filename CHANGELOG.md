@@ -1,12 +1,15 @@
 ## [0.1.2] - 2024.10.23
 
 ### Added
-- Added human readable battery status variables: `battery_status`, `balance_status`, `cell_status`, `cell_status`
+- Added calculated signed `watt` variable
+- Added human readable battery status variables: `battery_status`, `balance_status`, `cell_status`
 
 ### Changed
 - Variables `heat`, `protectState`, `failureState` changed to type list
 
 ### Fixed
+- Variable `remianAh` changed to `remainAh` (typo fix)
+- Fixed parsing `current` value, with output in Ampers
 - Minor typo fixes
 
 ## [0.1.1] - 2024.09.21
