@@ -9,7 +9,7 @@
 
 ### Fixed
 - Variable `remianAh` changed to `remainAh` (typo fix)
-- Fixed parsing `current` value, with output in Ampers
+- Fixed parsing `current` value, with output in ampere
 - Minor typo fixes
 
 ## [0.1.1] - 2024.09.21
