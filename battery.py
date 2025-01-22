@@ -1,6 +1,7 @@
 import json
 import asyncio
 import logging
+from bleak import BleakError
 from request import Request
 
 class BatteryInfo:
@@ -45,6 +46,7 @@ class BatteryInfo:
         self.batteryState = None
         self.SOC = None
         self.SOH = None
+        self.dischargeSwitchState = None
         self.dischargesCount = None
         self.dischargesAHCount = None
 
@@ -58,6 +60,12 @@ class BatteryInfo:
         self.cell_status = None
         self.bms_status = None
         self.heat_status = None
+
+        ## Error handling
+        self.error_code = 0
+        self.error_message = None
+
+        self._debug = False
 
         if logger:
             self._logger = logger
@@ -81,15 +89,31 @@ class BatteryInfo:
         '''
           Function read BMS info via bluetooth using bleak client
         '''
-        asyncio.run(self._request.bulk_send(
-            characteristic_id = self.BMS_CHARACTERISTIC_ID,
-            commands_parsers = {
-                self.pq_commands["GET_VERSION"]: self.parse_version,
-                self.pq_commands["GET_BATTERY_INFO"]: self.parse_battery_info,
-                ## Internal SN not used or not implemented
-                ## self.pq_commands["SERIAL_NUMBER"]: self.parse_serial_number
-            }
-        ))
+        try:
+            asyncio.run(self._request.bulk_send(
+                characteristic_id = self.BMS_CHARACTERISTIC_ID,
+                commands_parsers = {
+                    self.pq_commands["GET_VERSION"]: self.parse_version,
+                    self.pq_commands["GET_BATTERY_INFO"]: self.parse_battery_info,
+                    ## Internal SN not used or not implemented
+                    ## self.pq_commands["SERIAL_NUMBER"]: self.parse_serial_number
+                }
+            ))
+        except BleakError as e:
+            self.error_code = 4
+            self.error_message = f"{e.__class__.__name__}: {e}"
+            if self._debug:
+                raise
+        except TimeoutError as e:
+            self.error_code = 2
+            self.error_message = f"{e.__class__.__name__}: {e}"
+            if self._debug:
+                raise
+        except Exception as e:
+            self.error_code = 1
+            self.error_message = f"{e}"
+            if self._debug:
+                raise
 
     def get_json(self):
         '''
@@ -98,8 +122,7 @@ class BatteryInfo:
         state = self.__dict__
         del state['_logger']
         del state['_request']
-        state['SOC'] = f"{self.SOC}%"
-        state['SOH'] = f"{self.SOH}%"
+        del state['_debug']
 
         return json.dumps(
             state,
@@ -114,22 +137,24 @@ class BatteryInfo:
         self.packVoltage = int.from_bytes(data[8:12][::-1], byteorder='big')
         self.voltage = int.from_bytes(data[12:16][::-1], byteorder='big')
 
-        cell = 1
         batPack = data[16:48]
         for key, dt in enumerate(batPack):
-            if not dt or key % 2:
+            if key % 2:
                 continue
 
             cellVoltage = int.from_bytes([batPack[key + 1], dt], byteorder='big')
+            if not cellVoltage:
+                continue
+            cell = int(key / 2 + 1)
             self.batteryPack[cell] = cellVoltage/1000
-            cell += 1
 
         ## Load \ Unload current A
         current = int.from_bytes(data[48:52][::-1], byteorder='big', signed=True)
         self.current = round(current / 1000, 2)
 
         ## Calculated load \ unload Watt
-        self.watt = round((self.voltage * +current) / 10000, 1) / 100
+        watt = round((self.voltage * +current) / 10000, 1) / 100
+        self.watt = round(watt, 2)
 
         ## Remain Ah
         remainAh = int.from_bytes(data[62:64][::-1], byteorder='big')
@@ -141,20 +166,32 @@ class BatteryInfo:
 
         ## Temperature
         s = pow(2, 16)
-        self.cellTemperature = int.from_bytes(data[52:54][::-1], byteorder='big')
-        self.mosfetTemperature = int.from_bytes(data[54:56][::-1], byteorder='big')
+        self.cellTemperature = int.from_bytes(data[52:54][::-1], byteorder='big', signed=True)
+        self.mosfetTemperature = int.from_bytes(data[54:56][::-1], byteorder='big', signed=True)
 
-        self.heat = list(data[68:72][::-1])
+        self.heat = data[68:72][::-1].hex()
 
-        self.protectState = list(data[76:80][::-1])
+        ## Discharge switch state
+        ## State of internal bluetooth controlled discharge switch
+        if int(self.heat[6]) >= 8:
+            self.dischargeSwitchState = 0
+        else:
+            self.dischargeSwitchState = 1
+
+        self.protectState = data[76:80][::-1].hex()
         self.failureState = list(data[80:84][::-1])
         self.equilibriumState = int.from_bytes(data[84:88][::-1], byteorder='big')
+
+        ## Idle - 0 ??
+        ## Charging - 1
+        ## Discharging - 2
+        ## Full Charge - 4
         self.batteryState = int.from_bytes(data[88:90][::-1], byteorder='big')
 
-        ## Charge level
+        ## State of charge (Charge level)
         self.SOC = int.from_bytes(data[90:92][::-1], byteorder='big')
 
-        ## Battery Status ??
+        ## State of Health ??
         self.SOH = int.from_bytes(data[92:96][::-1], byteorder='big')
 
         self.dischargesCount = int.from_bytes(data[96:100][::-1], byteorder='big')
@@ -174,6 +211,11 @@ class BatteryInfo:
             self.cell_status = "Fault alert! There may be a problem with cell."
         else:
             self.cell_status = "Battery is in optimal working condition."
+
+        if int(self.heat[7]) == 2:
+            self.heat_status = "Self-heating is on"
+        else:
+            self.heat_status = "Self-heating is off"
 
 
     def parse_version(self, data):
@@ -219,3 +261,9 @@ class BatteryInfo:
             status = "Full Charge"
 
         return status
+
+    def set_debug(self, debug: bool):
+        '''
+          Switch debug mode. Set to true, to enable raising exceptions
+        '''
+        self._debug = debug

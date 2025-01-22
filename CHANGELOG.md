@@ -1,3 +1,23 @@
+## [0.1.4] - 2025.01.20
+
+### Added
+- Added handling exceptions
+- Added new fields to response:
+    `error_code` - different from zero means error
+    `error_message` - human readable error message
+- `error_code` added as exit code of script
+- Added variable `dischargeSwitchState` - state of internal bluetooth controlled discharge switch
+
+### Fixed
+- Fixed rounding of the calculated `watt` variable to two digits
+- Fixed detection of cells amount and voltage
+- Fixed issue with negative temperature of sensors (thanks @nopeee535)
+
+### Changed
+- `SOC` and `SOH` variables changed to integer, without percentage string
+- Changed parsing `heat` variable to hex
+- Updated minor version of `dbus-fast` library
+
 ## [0.1.3] - 2024.11.12
 
 ### Added
@@ -26,7 +46,7 @@
 - Added `--pair` option for pairing \ unpairing with devices
 
 ## [0.1.0] - 2024.09.21
-  
+
 Initial version.
 
 ### Added
