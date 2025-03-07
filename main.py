@@ -6,6 +6,9 @@ from battery import BatteryInfo
 
 
 def commands():
+    """
+    Command line arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "DEVICE_MAC",

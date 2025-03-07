@@ -141,6 +141,7 @@ Hardware:
 
 Hardware:
 - Power Queen LiFePO4 25.6V 100Ah
+- Power Queen LiFePO4 12V 140Ah
 
 ## Support and donation
 
