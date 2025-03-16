@@ -1,6 +1,7 @@
 import json
 import asyncio
 import logging
+from typing import Callable, Any
 from bleak import BleakError
 from request import Request
 
@@ -27,6 +28,11 @@ class BatteryInfo:
         ## On version 1.1.4 used SN from QR code, during adding battery
         "SERIAL_NUMBER": "00 00 04 01 10 55 AA 14",
     }
+
+    ERROR_GENERIC = 1
+    ERROR_TIMEOUT = 2
+    ERROR_BLEAK = 4
+    ERROR_CHECKSUM = 6
 
     def __init__(
         self,
@@ -84,6 +90,27 @@ class BatteryInfo:
             logger=self._logger,
         )
 
+    @staticmethod
+    def _check_crc(func: Callable[..., Any]) -> Callable[..., Any]:
+        """
+        Decorator for check response checksum
+        """
+        def wrapper(*args, **kwargs):
+            self_instance = args[0]
+            raw_data = args[1]
+            crc_packet = int.from_bytes(raw_data[-1:], byteorder="little")
+            data_crc = self_instance.crc_sum(raw_data[:-1])
+            debug_message = f"of {func.__name__}: data:{data_crc}, crc-packet:{crc_packet}"
+            self_instance.get_logger().info("Checksum %s", debug_message)
+
+            if crc_packet != data_crc:
+                self_instance.error = self_instance.ERROR_CHECKSUM
+                self_instance.error_message = f"Error: checksum missmatch {debug_message}"
+
+            result = func(*args, **kwargs)
+            return result
+        return wrapper
+
     def get_request(self):
         """
         Return Blutooth request instance
@@ -107,17 +134,17 @@ class BatteryInfo:
                 )
             )
         except BleakError as e:
-            self.error_code = 4
+            self.error_code = self.ERROR_BLEAK
             self.error_message = f"{e.__class__.__name__}: {e}"
             if self._debug:
                 raise
         except TimeoutError as e:
-            self.error_code = 2
+            self.error_code = self.ERROR_TIMEOUT
             self.error_message = f"{e.__class__.__name__}: {e}"
             if self._debug:
                 raise
         except Exception as e:
-            self.error_code = 1
+            self.error_code = self.ERROR_GENERIC
             self.error_message = f"{e}"
             if self._debug:
                 raise
@@ -135,6 +162,7 @@ class BatteryInfo:
             state, default=lambda o: o.__dict__, sort_keys=False, indent=4
         )
 
+    @_check_crc
     def parse_battery_info(self, data):
         """
         Parse battery info from bytearray
@@ -228,6 +256,7 @@ class BatteryInfo:
         else:
             self.heat_status = "Self-heating is off"
 
+    @_check_crc
     def parse_version(self, data):
         """
         Parse firmware version from bytearray
@@ -275,6 +304,18 @@ class BatteryInfo:
             status = "Full Charge"
 
         return status
+
+    def crc_sum(self, raw_data) -> int:
+        """
+        Calculate CRC sum
+        """
+        return sum(raw_data) & 0xFF
+
+    def get_logger(self):
+        """
+        Return class logger instance
+        """
+        return self._logger
 
     def set_debug(self, debug: bool):
         """
