@@ -1,3 +1,12 @@
+## [0.1.5] - 2025.03.07
+
+### Added
+- Checksum verification for BMS data response
+
+### Changed
+- Updated minor version of `dbus-fast` library
+- Code formatting
+
 ## [0.1.4] - 2025.01.20
 
 ### Added
