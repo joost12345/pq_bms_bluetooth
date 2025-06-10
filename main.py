@@ -39,11 +39,9 @@ def commands():
     return args
 
 
-def main():
+async def async_main():
     args = commands()
-
     logger = None
-
     if args.verbose:
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s [%(funcName)s] %(message)s")
@@ -56,14 +54,16 @@ def main():
 
     if args.services:
         request = battery.get_request()
-        asyncio.run(request.print_services())
+        await request.print_services()
         sys.exit(0)
 
     if args.bms:
-        battery.read_bms()
+        await battery.read_bms()  # Nu wachten we op de async functie
         print(battery.get_json())
         sys.exit(battery.error_code)
 
+def main():
+    asyncio.run(async_main())
 
 if __name__ == "__main__":
     main()
