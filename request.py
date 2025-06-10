@@ -47,25 +47,21 @@ class Request:
             if self.pair:
                 self.logger.info("Pairing %s...", self.bluetooth_device_mac)
                 await client.pair()
-
             for commandStr, parser in commands_parsers.items():
                 command = self._create_command(commandStr)
                 self.callback_func = parser
-
                 await client.start_notify(characteristic_id, self._data_callback)
                 self.logger.info("Sending command: %s", command)
                 result = await client.write_gatt_char(
                     characteristic_id, data=command, response=True
                 )
                 await asyncio.sleep(1.0)
-
                 self.logger.info("Raw result: %s", result)
                 await client.stop_notify(characteristic_id)
-
-        self.logger.info("Disconnecting %s...", self.bluetooth_device_mac)
-        if self.pair:
-            client.unpair()
-        await client.disconnect()
+                await asyncio.sleep(0.5)  # Kleine wachttijd toegevoegd
+            self.logger.info("Disconnecting %s...", self.bluetooth_device_mac)
+            if self.pair:
+                await client.unpair()
         self.logger.info("Disconnected %s", self.bluetooth_device_mac)
 
     async def print_services(self):
