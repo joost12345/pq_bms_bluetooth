@@ -38,7 +38,7 @@ class BatteryInfo:
         self,
         bluetooth_device_mac: str,
         pair_device: bool = False,
-        timeout: int = 2,
+        timeout: int = 10,
         logger=None,
     ):
         self.packVoltage = None
