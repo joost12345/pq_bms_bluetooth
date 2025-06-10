@@ -9,7 +9,7 @@ class Request:
         self,
         bluetooth_device_mac: str,
         pair_device: bool = False,
-        timeout: int = 2,
+        timeout: int = 10,
         logger=None,
     ):
         self.bluetooth_device_mac = bluetooth_device_mac
