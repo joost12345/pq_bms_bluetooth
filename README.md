@@ -136,14 +136,5 @@ Software:
 
 Hardware:
 - Power Queen LiFePO4 12V 100Ah
-
-## Community tested
-
-Hardware:
-- Power Queen LiFePO4 25.6V 100Ah
 - Power Queen LiFePO4 12V 140Ah
-
-## Support and donation
-
-- PayPal: dimon.freeman@gmail.com
-- Tether (USDT): TUvCxN29Vj5GRVdq4655XaTa9nBNhw6dug
+- Power Queen LiFePO4 25.6V 100Ah
