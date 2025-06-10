@@ -117,21 +117,17 @@ class BatteryInfo:
         """
         return self._request
 
-    def read_bms(self):
+    async def read_bms(self):
         """
         Function read BMS info via bluetooth using bleak client
         """
         try:
-            asyncio.run(
-                self._request.bulk_send(
-                    characteristic_id=self.BMS_CHARACTERISTIC_ID,
-                    commands_parsers={
-                        self.pq_commands["GET_VERSION"]: self.parse_version,
-                        self.pq_commands["GET_BATTERY_INFO"]: self.parse_battery_info,
-                        ## Internal SN not used or not implemented
-                        ## self.pq_commands["SERIAL_NUMBER"]: self.parse_serial_number
-                    },
-                )
+            await self._request.bulk_send(
+                characteristic_id=self.BMS_CHARACTERISTIC_ID,
+                commands_parsers={
+                    self.pq_commands["GET_VERSION"]: self.parse_version,
+                    self.pq_commands["GET_BATTERY_INFO"]: self.parse_battery_info,
+                },
             )
         except BleakError as e:
             self.error_code = self.ERROR_BLEAK
